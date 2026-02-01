@@ -4,7 +4,6 @@ import {
     INodeType,
     INodeTypeDescription,
     IDataObject,
-    NodeOperationError,
 } from "n8n-workflow";
 
 import { wacraftApiRequest } from "./GenericFunctions";
