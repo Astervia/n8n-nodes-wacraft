@@ -21,7 +21,8 @@
     "scripts": {
         "build": "tsc && gulp build:icons",
         "dev": "tsc --watch",
-        "format": "prettier nodes credentials --write",
+        "format": "prettier . --write",
+        "format:check": "prettier . --check",
         "lint": "tslint -p tsconfig.json -c tslint.json",
         "lintfix": "tslint --fix -p tsconfig.json -c tslint.json",
         "prepublishOnly": "npm run build"
