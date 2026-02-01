@@ -1,0 +1,11 @@
+FROM n8nio/n8n
+
+USER root
+COPY . /home/node/n8n-nodes-wacraft
+RUN cd /home/node/n8n-nodes-wacraft \
+    && npm install --include=dev \
+    && npm run build \
+    && npm prune --omit=dev
+USER node
+
+ENV N8N_CUSTOM_EXTENSIONS=/home/node/n8n-nodes-wacraft

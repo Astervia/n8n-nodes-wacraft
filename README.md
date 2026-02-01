@@ -141,6 +141,18 @@ Example sender data for a template message:
 }
 ```
 
+## Testing with Docker
+
+Build and run a custom n8n image with the node pre-installed using Docker Compose:
+
+```bash
+docker compose -f docker-compose.test.yml up --build
+```
+
+Open `http://localhost:5678` and the **Wacraft** node will appear in the node picker.
+
+If your wacraft server is running on the host machine, use `http://host.docker.internal:6900` as the base URL. The compose file already includes the `extra_hosts` mapping so `host.docker.internal` resolves correctly on all platforms including Linux.
+
 ## Development
 
 ```bash
@@ -166,6 +178,8 @@ n8n-nodes-wacraft/
 │   ├── GenericFunctions.ts          # Auth helpers and API request functions
 │   ├── Wacraft.node.ts              # Node definition with all resources
 │   └── wacraft.svg                  # Node icon
+├── Dockerfile.test
+├── docker-compose.test.yml
 ├── eslint.config.mjs
 ├── gulpfile.js
 ├── package.json
