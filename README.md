@@ -1,4 +1,4 @@
-# n8n-nodes-wacraft
+# @astervia/n8n-nodes-wacraft
 
 n8n community node for [wacraft](https://github.com/Astervia/wacraft-server) — a WhatsApp Cloud API backend server. This node lets you manage contacts, send messages, handle media, and retrieve templates directly from your n8n workflows.
 
@@ -8,13 +8,13 @@ n8n community node for [wacraft](https://github.com/Astervia/wacraft-server) —
 
 1. Open your n8n instance.
 2. Go to **Settings > Community Nodes**.
-3. Search for `n8n-nodes-wacraft` and click **Install**.
+3. Search for `@astervia/n8n-nodes-wacraft` and click **Install**.
 
 ### Manual installation
 
 ```bash
 cd ~/.n8n/custom
-npm install n8n-nodes-wacraft
+npm install @astervia/n8n-nodes-wacraft
 ```
 
 Then restart n8n.
@@ -29,7 +29,7 @@ npm run build
 npm link
 
 cd ~/.n8n
-npm link n8n-nodes-wacraft
+npm link @astervia/n8n-nodes-wacraft
 ```
 
 Restart n8n. The **Wacraft** node will appear in the node picker.
@@ -147,6 +147,8 @@ Example sender data for a template message:
 npm install       # Install dependencies
 npm run build     # Compile TypeScript and copy icons
 npm run dev       # Watch mode for TypeScript
+npm run lint      # Lint with ESLint
+npm run lint:fix  # Lint and auto-fix
 npm run format    # Format code with Prettier
 ```
 
@@ -154,15 +156,20 @@ npm run format    # Format code with Prettier
 
 ```
 n8n-nodes-wacraft/
+├── .github/workflows/
+│   ├── codeql-analysis.yml          # CodeQL SAST scanning
+│   ├── quality-and-security.yml     # Lint, format, audit, build on push/PR
+│   └── release.yml                  # Publish to npm on GitHub Release
 ├── credentials/
 │   └── WacraftApi.credentials.ts    # Credential definition
 ├── nodes/Wacraft/
 │   ├── GenericFunctions.ts          # Auth helpers and API request functions
 │   ├── Wacraft.node.ts              # Node definition with all resources
 │   └── wacraft.svg                  # Node icon
+├── eslint.config.mjs
+├── gulpfile.js
 ├── package.json
-├── tsconfig.json
-└── gulpfile.js
+└── tsconfig.json
 ```
 
 ## License
