@@ -1,0 +1,51 @@
+{
+    "name": "n8n-nodes-wacraft",
+    "version": "0.1.0",
+    "description": "n8n community node for wacraft - WhatsApp Cloud API operations",
+    "keywords": [
+        "n8n-community-node-package",
+        "whatsapp",
+        "wacraft"
+    ],
+    "license": "MIT",
+    "homepage": "https://github.com/Astervia/n8n-nodes-wacraft",
+    "author": {
+        "name": "Astervia Dev Team",
+        "email": "wacraft@astervia.tech"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Astervia/n8n-nodes-wacraft.git"
+    },
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc && gulp build:icons",
+        "dev": "tsc --watch",
+        "format": "prettier nodes credentials --write",
+        "lint": "tslint -p tsconfig.json -c tslint.json",
+        "lintfix": "tslint --fix -p tsconfig.json -c tslint.json",
+        "prepublishOnly": "npm run build"
+    },
+    "files": [
+        "dist"
+    ],
+    "n8n": {
+        "n8nNodesApiVersion": 1,
+        "credentials": [
+            "dist/credentials/WacraftApi.credentials.js"
+        ],
+        "nodes": [
+            "dist/nodes/Wacraft/Wacraft.node.js"
+        ]
+    },
+    "devDependencies": {
+        "@types/node": "^22.0.0",
+        "gulp": "^4.0.2",
+        "n8n-workflow": "*",
+        "prettier": "^3.2.0",
+        "typescript": "~5.4.0"
+    },
+    "peerDependencies": {
+        "n8n-workflow": "*"
+    }
+}
