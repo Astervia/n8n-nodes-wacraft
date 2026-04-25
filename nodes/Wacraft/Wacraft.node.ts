@@ -38,7 +38,10 @@ export class Wacraft implements INodeType {
                 type: "options",
                 noDataExpression: true,
                 options: [
-                    { name: "Billing", value: "billing" },
+                    { name: "Billing Plan", value: "billingPlan" },
+                    { name: "Billing Plan Price", value: "billingPlanPrice" },
+                    { name: "Billing Subscription", value: "billingSubscription" },
+                    { name: "Billing Usage", value: "billingUsage" },
                     { name: "Contact", value: "contact" },
                     { name: "Media", value: "media" },
                     { name: "Message", value: "message" },
@@ -50,77 +53,128 @@ export class Wacraft implements INodeType {
             },
 
             // ==================================================================
-            //  BILLING operations
+            //  BILLING PLAN operations
             // ==================================================================
             {
                 displayName: "Operation",
                 name: "operation",
                 type: "options",
                 noDataExpression: true,
-                displayOptions: { show: { resource: ["billing"] } },
+                displayOptions: { show: { resource: ["billingPlan"] } },
                 options: [
                     {
-                        name: "Cancel Subscription",
-                        value: "cancelSubscription",
-                        action: "Cancel a subscription",
-                        description: "Cancel an active subscription",
+                        name: "Retrieve Billing Plans",
+                        value: "getMany",
+                        action: "Retrieve billing plans",
+                        description:
+                            "Returns a paginated list of billing plans based on optional filters.",
                     },
+                ],
+                default: "getMany",
+            },
+
+            // ==================================================================
+            //  BILLING PLAN PRICE operations
+            // ==================================================================
+            {
+                displayName: "Operation",
+                name: "operation",
+                type: "options",
+                noDataExpression: true,
+                displayOptions: { show: { resource: ["billingPlanPrice"] } },
+                options: [
                     {
-                        name: "Create Checkout",
-                        value: "createCheckout",
-                        action: "Create a checkout",
-                        description: "Create a payment checkout session for purchasing a plan",
+                        name: "List Plan Prices",
+                        value: "getMany",
+                        action: "List plan prices",
+                        description: "Returns all currency-specific prices for a billing plan.",
+                    },
+                ],
+                default: "getMany",
+            },
+
+            // ==================================================================
+            //  BILLING SUBSCRIPTION operations
+            // ==================================================================
+            {
+                displayName: "Operation",
+                name: "operation",
+                type: "options",
+                noDataExpression: true,
+                displayOptions: { show: { resource: ["billingSubscription"] } },
+                options: [
+                    {
+                        name: "Cancel a Subscription",
+                        value: "cancel",
+                        action: "Cancel a subscription",
+                        description:
+                            "Cancels an active subscription. Users can only cancel their own subscriptions.",
                     },
                     {
                         name: "Create Manual Subscription",
-                        value: "createManualSubscription",
-                        action: "Create a manual subscription",
-                        description: "Create a subscription manually",
+                        value: "createManual",
+                        action: "Create manual subscription",
+                        description:
+                            "Creates a subscription manually for custom deals or enterprise plans. Requires billing.admin policy.",
                     },
                     {
-                        name: "Get Plan Prices",
-                        value: "getPlanPrices",
-                        action: "Get plan prices",
-                        description: "Retrieve currency-specific prices for a billing plan",
+                        name: "Initiate Checkout",
+                        value: "initiateCheckout",
+                        action: "Initiate checkout",
+                        description:
+                            "Creates a payment checkout session for purchasing a plan. Returns a URL to redirect the user to the payment provider.",
                     },
                     {
-                        name: "Get Plans",
-                        value: "getPlans",
-                        action: "Get billing plans",
-                        description: "Retrieve billing plans",
-                    },
-                    {
-                        name: "Get Subscriptions",
-                        value: "getSubscriptions",
-                        action: "Get subscriptions",
-                        description: "Retrieve billing subscriptions",
-                    },
-                    {
-                        name: "Get Usage",
-                        value: "getUsage",
-                        action: "Get billing usage",
-                        description: "Retrieve current throughput usage",
-                    },
-                    {
-                        name: "Reactivate Subscription",
-                        value: "reactivateSubscription",
+                        name: "Reactivate a Subscription",
+                        value: "reactivate",
                         action: "Reactivate a subscription",
-                        description: "Reactivate a subscription pending cancellation",
+                        description:
+                            "Reverses a pending cancellation for a recurring subscription, re-enabling auto-renewal. Only works when cancel_at_period_end is true and cancelled_at is not set.",
+                    },
+                    {
+                        name: "Retrieve Subscriptions",
+                        value: "getMany",
+                        action: "Retrieve subscriptions",
+                        description:
+                            "Returns paginated subscriptions. Without X-Workspace-ID returns user subscriptions. With X-Workspace-ID returns workspace subscriptions (requires billing.read policy).",
                     },
                     {
                         name: "Retry Subscription Payment",
-                        value: "retrySubscription",
+                        value: "retryPayment",
                         action: "Retry subscription payment",
-                        description: "Get a payment provider URL for an outstanding invoice",
+                        description:
+                            "Returns a URL to the payment provider where the user can pay an outstanding invoice for a past due subscription. Without X-Workspace-ID it operates on a user subscription. With X-Workspace-ID it operates on a workspace subscription (requires billing.manage policy).",
                     },
                     {
-                        name: "Sync Subscription",
-                        value: "syncSubscription",
-                        action: "Sync a subscription",
-                        description: "Sync subscription state with the payment provider",
+                        name: "Sync Subscription With Payment Provider",
+                        value: "sync",
+                        action: "Sync subscription with payment provider",
+                        description:
+                            "Fetches the current subscription state from the payment provider (e.g. Stripe) and updates the local record. Only works for subscription-mode subscriptions.",
                     },
                 ],
-                default: "getPlans",
+                default: "getMany",
+            },
+
+            // ==================================================================
+            //  BILLING USAGE operations
+            // ==================================================================
+            {
+                displayName: "Operation",
+                name: "operation",
+                type: "options",
+                noDataExpression: true,
+                displayOptions: { show: { resource: ["billingUsage"] } },
+                options: [
+                    {
+                        name: "Get Throughput Usage",
+                        value: "get",
+                        action: "Get throughput usage",
+                        description:
+                            "Returns current throughput usage. Always includes user-scoped usage. If X-Workspace-ID is provided, also includes workspace-scoped usage.",
+                    },
+                ],
+                default: "get",
             },
 
             // ==================================================================
@@ -362,8 +416,8 @@ export class Wacraft implements INodeType {
                 default: {},
                 displayOptions: {
                     show: {
-                        resource: ["billing"],
-                        operation: ["getPlans", "getSubscriptions", "getPlanPrices"],
+                        resource: ["billingPlan", "billingPlanPrice", "billingSubscription"],
+                        operation: ["getMany"],
                     },
                 },
                 options: [
@@ -395,8 +449,15 @@ export class Wacraft implements INodeType {
                         type: "number",
                         default: 10,
                         typeOptions: { minValue: 1 },
+                        description: "Number of items to return",
                     },
-                    { displayName: "Offset", name: "offset", type: "number", default: 0 },
+                    {
+                        displayName: "Offset",
+                        name: "offset",
+                        type: "number",
+                        default: 0,
+                        description: "The offset from where to start the items",
+                    },
                     {
                         displayName: "Updated At Order",
                         name: "updated_at",
@@ -429,11 +490,25 @@ export class Wacraft implements INodeType {
                 default: "",
                 displayOptions: {
                     show: {
-                        resource: ["billing"],
-                        operation: ["getPlanPrices", "createCheckout", "createManualSubscription"],
+                        resource: ["billingPlanPrice"],
+                        operation: ["getMany"],
                     },
                 },
-                description: "Billing plan ID",
+                description: "Plan ID",
+            },
+            {
+                displayName: "Plan ID",
+                name: "planId",
+                type: "string",
+                required: true,
+                default: "",
+                displayOptions: {
+                    show: {
+                        resource: ["billingSubscription"],
+                        operation: ["initiateCheckout", "createManual"],
+                    },
+                },
+                description: "Plan ID",
             },
             {
                 displayName: "Subscription ID",
@@ -443,16 +518,11 @@ export class Wacraft implements INodeType {
                 default: "",
                 displayOptions: {
                     show: {
-                        resource: ["billing"],
-                        operation: [
-                            "cancelSubscription",
-                            "reactivateSubscription",
-                            "retrySubscription",
-                            "syncSubscription",
-                        ],
+                        resource: ["billingSubscription"],
+                        operation: ["cancel", "reactivate", "retryPayment", "sync"],
                     },
                 },
-                description: "Billing subscription ID",
+                description: "Subscription ID",
             },
             {
                 displayName: "Scope",
@@ -466,8 +536,8 @@ export class Wacraft implements INodeType {
                 default: "user",
                 displayOptions: {
                     show: {
-                        resource: ["billing"],
-                        operation: ["createCheckout", "createManualSubscription"],
+                        resource: ["billingSubscription"],
+                        operation: ["initiateCheckout", "createManual"],
                     },
                 },
                 description: "Billing subscription scope",
@@ -478,7 +548,9 @@ export class Wacraft implements INodeType {
                 type: "string",
                 required: true,
                 default: "",
-                displayOptions: { show: { resource: ["billing"], operation: ["createCheckout"] } },
+                displayOptions: {
+                    show: { resource: ["billingSubscription"], operation: ["initiateCheckout"] },
+                },
                 description: "URL to redirect to after a successful checkout",
             },
             {
@@ -487,7 +559,9 @@ export class Wacraft implements INodeType {
                 type: "string",
                 required: true,
                 default: "",
-                displayOptions: { show: { resource: ["billing"], operation: ["createCheckout"] } },
+                displayOptions: {
+                    show: { resource: ["billingSubscription"], operation: ["initiateCheckout"] },
+                },
                 description: "URL to redirect to if checkout is cancelled",
             },
             {
@@ -495,7 +569,9 @@ export class Wacraft implements INodeType {
                 name: "currency",
                 type: "string",
                 default: "",
-                displayOptions: { show: { resource: ["billing"], operation: ["createCheckout"] } },
+                displayOptions: {
+                    show: { resource: ["billingSubscription"], operation: ["initiateCheckout"] },
+                },
                 description: "Currency to use. If empty, the plan's default price is used.",
             },
             {
@@ -507,15 +583,19 @@ export class Wacraft implements INodeType {
                     { name: "Subscription", value: "subscription" },
                 ],
                 default: "payment",
-                displayOptions: { show: { resource: ["billing"], operation: ["createCheckout"] } },
-                description: "Payment mode for the checkout session",
+                displayOptions: {
+                    show: { resource: ["billingSubscription"], operation: ["initiateCheckout"] },
+                },
+                description: 'Defaults to "payment" if empty',
             },
             {
                 displayName: "Workspace ID",
                 name: "checkoutWorkspaceId",
                 type: "string",
                 default: "",
-                displayOptions: { show: { resource: ["billing"], operation: ["createCheckout"] } },
+                displayOptions: {
+                    show: { resource: ["billingSubscription"], operation: ["initiateCheckout"] },
+                },
                 description: "Required by the API when scope is workspace",
             },
             {
@@ -525,7 +605,7 @@ export class Wacraft implements INodeType {
                 required: true,
                 default: "",
                 displayOptions: {
-                    show: { resource: ["billing"], operation: ["createManualSubscription"] },
+                    show: { resource: ["billingSubscription"], operation: ["createManual"] },
                 },
                 description: "User who purchased or owns the subscription",
             },
@@ -536,7 +616,7 @@ export class Wacraft implements INodeType {
                 placeholder: "Add Field",
                 default: {},
                 displayOptions: {
-                    show: { resource: ["billing"], operation: ["createManualSubscription"] },
+                    show: { resource: ["billingSubscription"], operation: ["createManual"] },
                 },
                 options: [
                     {
@@ -1120,10 +1200,10 @@ export class Wacraft implements INodeType {
                 let responseData: any;
 
                 // ==============================================================
-                //  BILLING
+                //  BILLING PLAN
                 // ==============================================================
-                if (resource === "billing") {
-                    if (operation === "getPlans") {
+                if (resource === "billingPlan") {
+                    if (operation === "getMany") {
                         const filters = this.getNodeParameter("filters", i, {}) as IDataObject;
                         responseData = await wacraftApiRequest.call(
                             this,
@@ -1133,7 +1213,14 @@ export class Wacraft implements INodeType {
                             filters,
                             wsId,
                         );
-                    } else if (operation === "getPlanPrices") {
+                    }
+                }
+
+                // ==============================================================
+                //  BILLING PLAN PRICE
+                // ==============================================================
+                else if (resource === "billingPlanPrice") {
+                    if (operation === "getMany") {
                         const planId = this.getNodeParameter("planId", i) as string;
                         const filters = this.getNodeParameter("filters", i, {}) as IDataObject;
                         responseData = await wacraftApiRequest.call(
@@ -1144,7 +1231,14 @@ export class Wacraft implements INodeType {
                             filters,
                             wsId,
                         );
-                    } else if (operation === "getSubscriptions") {
+                    }
+                }
+
+                // ==============================================================
+                //  BILLING SUBSCRIPTION
+                // ==============================================================
+                else if (resource === "billingSubscription") {
+                    if (operation === "getMany") {
                         const filters = this.getNodeParameter("filters", i, {}) as IDataObject;
                         responseData = await wacraftApiRequest.call(
                             this,
@@ -1154,7 +1248,7 @@ export class Wacraft implements INodeType {
                             filters,
                             wsId,
                         );
-                    } else if (operation === "cancelSubscription") {
+                    } else if (operation === "cancel") {
                         const id = this.getNodeParameter("subscriptionId", i) as string;
                         responseData = await wacraftApiRequest.call(
                             this,
@@ -1164,7 +1258,7 @@ export class Wacraft implements INodeType {
                             { id },
                             wsId,
                         );
-                    } else if (operation === "createCheckout") {
+                    } else if (operation === "initiateCheckout") {
                         const planId = this.getNodeParameter("planId", i) as string;
                         const scope = this.getNodeParameter("scope", i) as string;
                         const successUrl = this.getNodeParameter("successUrl", i) as string;
@@ -1193,7 +1287,7 @@ export class Wacraft implements INodeType {
                             {},
                             wsId,
                         );
-                    } else if (operation === "createManualSubscription") {
+                    } else if (operation === "createManual") {
                         const planId = this.getNodeParameter("planId", i) as string;
                         const scope = this.getNodeParameter("scope", i) as string;
                         const userId = this.getNodeParameter("userId", i) as string;
@@ -1216,7 +1310,7 @@ export class Wacraft implements INodeType {
                             {},
                             wsId,
                         );
-                    } else if (operation === "reactivateSubscription") {
+                    } else if (operation === "reactivate") {
                         const id = this.getNodeParameter("subscriptionId", i) as string;
                         responseData = await wacraftApiRequest.call(
                             this,
@@ -1226,7 +1320,7 @@ export class Wacraft implements INodeType {
                             { id },
                             wsId,
                         );
-                    } else if (operation === "retrySubscription") {
+                    } else if (operation === "retryPayment") {
                         const id = this.getNodeParameter("subscriptionId", i) as string;
                         responseData = await wacraftApiRequest.call(
                             this,
@@ -1236,7 +1330,7 @@ export class Wacraft implements INodeType {
                             { id },
                             wsId,
                         );
-                    } else if (operation === "syncSubscription") {
+                    } else if (operation === "sync") {
                         const id = this.getNodeParameter("subscriptionId", i) as string;
                         responseData = await wacraftApiRequest.call(
                             this,
@@ -1246,7 +1340,14 @@ export class Wacraft implements INodeType {
                             { id },
                             wsId,
                         );
-                    } else if (operation === "getUsage") {
+                    }
+                }
+
+                // ==============================================================
+                //  BILLING USAGE
+                // ==============================================================
+                else if (resource === "billingUsage") {
+                    if (operation === "get") {
                         responseData = await wacraftApiRequest.call(
                             this,
                             "GET",
