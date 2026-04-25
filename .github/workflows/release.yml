@@ -1,8 +1,9 @@
 name: Release to npm
 
 on:
-    release:
-        types: [published]
+    push:
+        tags:
+            - "v*.*.*"
 
 permissions:
     contents: read
@@ -48,7 +49,7 @@ jobs:
         needs: quality-gate
 
         permissions:
-            contents: read
+            contents: write # Required to create GitHub releases
             id-token: write # Required for npm provenance
 
         steps:
@@ -69,10 +70,14 @@ jobs:
             - name: Build
               run: npm run build
 
+            - name: Set release variables
+              id: vars
+              run: echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
             - name: Verify package version matches release tag
               run: |
                   PACKAGE_VERSION="v$(node -p "require('./package.json').version")"
-                  RELEASE_TAG="${{ github.event.release.tag_name }}"
+                  RELEASE_TAG="${{ steps.vars.outputs.tag }}"
                   if [ "$PACKAGE_VERSION" != "$RELEASE_TAG" ]; then
                     echo "::error::package.json version ($PACKAGE_VERSION) does not match release tag ($RELEASE_TAG)"
                     exit 1
@@ -82,3 +87,9 @@ jobs:
               run: npm publish --provenance --access public
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish GitHub release
+              uses: softprops/action-gh-release@v3
+              with:
+                  tag_name: ${{ steps.vars.outputs.tag }}
+                  generate_release_notes: true
